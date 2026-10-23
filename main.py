@@ -42,6 +42,15 @@ app.include_router(auth_router)
 app.include_router(translations_router)
 
 
+@app.get("/", tags=["Root"])
+async def root():
+    return {
+        "message": f"Welcome to {settings.APP_NAME}",
+        "docs": "/docs",
+        "health": "/health",
+    }
+
+
 @app.get("/health", tags=["Health Check"])
 async def health_check():
     return {
