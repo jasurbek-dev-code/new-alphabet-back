@@ -17,7 +17,10 @@ class AuthRequest(BaseModel):
     init_data: str = Field(
         ...,
         description="The raw initData query string received from Telegram.WebApp.initData",
+        alias="initData",
     )
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class UserResponse(BaseModel):

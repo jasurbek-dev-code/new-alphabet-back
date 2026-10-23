@@ -2,14 +2,37 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import settings
 from database import get_db
 from dependencies import get_current_user
 from models import User
 from schemas import AuthRequest, AuthResponse, UserResponse
 from services.telegram_auth import validate_telegram_init_data
+from services.telegram_helper import generate_mock_init_data
 from services.user_service import UserService
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication & User Sync"])
+
+
+@router.get(
+    "/mock-init-data",
+    summary="Get mock Telegram initData for browser testing",
+    description="Returns a valid Telegram initData string for a default test user. Useful when testing in regular browsers.",
+)
+async def get_mock_telegram_init_data() -> dict:
+    bot_token = settings.TELEGRAM_BOT_TOKEN or "test_bot_token"
+    default_test_user = {
+        "id": 100001,
+        "first_name": "Test",
+        "last_name": "Foydalanuvchi",
+        "username": "browser_test_user",
+        "language_code": "uz",
+    }
+    mock_data = generate_mock_init_data(bot_token, default_test_user)
+    return {
+        "init_data": mock_data,
+        "user": default_test_user,
+    }
 
 
 @router.post(
@@ -38,6 +61,19 @@ async def authenticate_and_sync_user(
         is_new_user=is_new,
         auth_date=auth_dt,
     )
+
+
+# Also support /auth alias for backward compatibility
+@router.post(
+    "",
+    response_model=AuthResponse,
+    include_in_schema=False,
+)
+async def authenticate_and_sync_user_alias(
+    payload: AuthRequest,
+    db: AsyncSession = Depends(get_db),
+) -> AuthResponse:
+    return await authenticate_and_sync_user(payload=payload, db=db)
 
 
 @router.get(
