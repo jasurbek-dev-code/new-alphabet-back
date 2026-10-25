@@ -14,7 +14,6 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication & User Sync"])
 
 @router.post(
     "/sync",
-    "/sync",
     response_model=AuthResponse,
     status_code=status.HTTP_200_OK,
     summary="Validate Telegram initData and synchronize user",
