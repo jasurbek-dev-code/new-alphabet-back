@@ -45,7 +45,7 @@ class Settings(BaseSettings):
         return env in ("development", "dev", "local", "test")
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=BACK_DIR / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
