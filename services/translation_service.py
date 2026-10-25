@@ -57,3 +57,24 @@ class TranslationService:
         items = list(items_result.scalars().all())
 
         return items, total
+
+    async def delete_user_history_item(self, user_id: int, history_id: int) -> bool:
+        """
+        Deletes a specific history record belonging to the user.
+        Returns True if found and deleted, False otherwise.
+        """
+        stmt = (
+            select(TranslationHistory)
+            .where(
+                TranslationHistory.id == history_id,
+                TranslationHistory.user_id == user_id,
+            )
+        )
+        result = await self.db.execute(stmt)
+        record = result.scalar_one_or_none()
+        if not record:
+            return False
+
+        await self.db.delete(record)
+        await self.db.commit()
+        return True

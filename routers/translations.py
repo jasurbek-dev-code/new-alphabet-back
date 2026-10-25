@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
@@ -58,3 +58,27 @@ async def get_translation_history(
         per_page=per_page,
         items=items,
     )
+
+
+@router.delete(
+    "/history/{history_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a translation history item",
+    description="Deletes a specific translation record belonging to the authenticated user.",
+)
+async def delete_translation_history_item(
+    history_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    service = TranslationService(db)
+    deleted = await service.delete_user_history_item(
+        user_id=current_user.telegram_id,
+        history_id=history_id,
+    )
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="History item not found",
+        )
+    return None
