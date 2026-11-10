@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
@@ -51,6 +51,11 @@ async def root():
     }
 
 
+@app.head("/", include_in_schema=False)
+async def root_head():
+    return Response(status_code=200)
+
+
 @app.get("/health", tags=["Health Check"])
 async def health_check():
     return {
@@ -59,3 +64,7 @@ async def health_check():
         "environment": settings.APP_ENV,
     }
 
+
+@app.head("/health", include_in_schema=False)
+async def health_check_head():
+    return Response(status_code=200)
