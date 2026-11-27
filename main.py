@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(
+fastapi_app = FastAPI(
     title=settings.APP_NAME,
     version="1.0.0",
     description="Backend API for Telegram Mini App transliterating Uzbek Latin script to the reformed alphabet.",
@@ -29,20 +29,11 @@ allowed_origins = [origin.strip() for origin in settings.ALLOWED_ORIGINS.split("
 if not allowed_origins or "*" in allowed_origins:
     allowed_origins = ["*"]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Include Routers
-app.include_router(auth_router)
-app.include_router(translations_router)
+fastapi_app.include_router(auth_router)
+fastapi_app.include_router(translations_router)
 
 
-@app.get("/", tags=["Root"])
+@fastapi_app.get("/", tags=["Root"])
 async def root():
     return {
         "message": f"Welcome to {settings.APP_NAME}",
@@ -51,12 +42,12 @@ async def root():
     }
 
 
-@app.head("/", include_in_schema=False)
+@fastapi_app.head("/", include_in_schema=False)
 async def root_head():
     return Response(status_code=200)
 
 
-@app.get("/health", tags=["Health Check"])
+@fastapi_app.get("/health", tags=["Health Check"])
 async def health_check():
     return {
         "status": "healthy",
@@ -65,6 +56,16 @@ async def health_check():
     }
 
 
-@app.head("/health", include_in_schema=False)
+@fastapi_app.head("/health", include_in_schema=False)
 async def health_check_head():
     return Response(status_code=200)
+
+
+# Wrap the complete app so CORS headers are included on unhandled error responses too.
+app = CORSMiddleware(
+    app=fastapi_app,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
